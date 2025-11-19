@@ -1,0 +1,46 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>FP Log Admin</title>
+  <style>
+    body{font-family:system-ui;background:#0b1020;color:#e6eef8;padding:18px}
+    .card{background:#071021;padding:12px;border-radius:12px;margin-bottom:10px;box-shadow:0 6px 18px rgba(0,0,0,0.5)}
+    .muted{opacity:0.6;font-size:12px}
+    .fp{font-family:monospace;background:#021226;padding:6px;border-radius:6px}
+  </style>
+</head>
+<body>
+  <h1>FP Log — Admin Panel</h1>
+  <div>
+    <label>Admin token:
+      <input id="token" type="password" style="width:320px"/>
+    </label>
+    <button id="btnLoad">Load logs</button>
+  </div>
+  <div id="list"></div>
+  <script>
+    async function load() {
+      const token = document.getElementById('token').value;
+      const res = await fetch(`/api/logs?limit=200`, { headers: { 'x-admin-token': token } });
+      if (res.status === 401) { alert('Unauthorized'); return; }
+      const json = await res.json();
+      const list = document.getElementById('list');
+      list.innerHTML = '';
+      json.rows.forEach(r => {
+        const el = document.createElement('div');
+        el.className = 'card';
+        el.innerHTML = `
+          <div class="muted">#${r.id} — ${r.ts}</div>
+          <div><strong>${r.type}</strong></div>
+          <div class="muted">account: ${r.account || '-'} | char: ${r.char || '-'} | status: ${r.status || '-'}</div>
+          <div><span class="muted">fp:</span> <span class="fp">${r.fp || '-'}</span></div>
+          <pre style="margin-top:8px;white-space:pre-wrap;max-height:160px;overflow:auto;background:#021226;padding:8px;border-radius:6px">${r.meta}</pre>`;
+        list.appendChild(el);
+      });
+    }
+    document.getElementById('btnLoad').addEventListener('click', load);
+  </script>
+</body>
+</html>
